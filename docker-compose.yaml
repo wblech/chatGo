@@ -1,0 +1,60 @@
+version: '3'
+
+volumes:
+  mysql_data:
+    driver: local
+  mysql_data2:
+    driver: local
+
+services:
+
+  db:
+    image: mysql:5.7
+    container_name: keycloak_mysql
+    restart: always
+    tty: true
+    ports:
+      - 33306:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=keycloak
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=keycloak
+      - MYSQL_PASSWORD=password
+
+  app:
+    image: quay.io/keycloak/keycloak:legacy
+    container_name: keycloak
+    volumes:
+      - ./src/infrastructure/keycloak/data/realm-export.json:/tmp/realm-export.json
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+      - KEYCLOAK_IMPORT=/tmp/realm-export.json
+      - DB_ADDR=db
+      - DB_VENDOR=MYSQL
+      - DB_DATABASE=keycloak
+      - DB_PORT=3306
+      - DB_USER=keycloak
+      - DB_PASSWORD=password
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+
+  db_chat:
+    image: mysql:5.7
+    container_name: chat_mysql
+    restart: always
+    tty: true
+    ports:
+      - 3307:3307
+    volumes:
+      - mysql_data2:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=chat
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=chat
+      - MYSQL_PASSWORD=password
+      - MYSQL_TCP_PORT=3307

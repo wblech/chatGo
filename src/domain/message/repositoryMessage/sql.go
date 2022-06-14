@@ -5,13 +5,15 @@ import (
 	"time"
 )
 
+//go:generate mockgen -source=sql.go -destination=sql_mock.go -package=repositoryMessage Repository
+
 type (
 	Creator interface {
 		Create(message *MessageModel)
 	}
 
 	Getter interface {
-		GetWithLimit(models *[]MessageModel, limit int)
+		GetWithLimit(models *[]MessageModel, limit int) *[]MessageModel
 	}
 
 	Repository interface {
@@ -53,8 +55,8 @@ func (d Database) FindWithLimit(limit int) []message.Message {
 	var entities []message.Message
 
 	//d.db.Limit(limit).Find(&models).Order("created_at DESC")
-	d.GetWithLimit(&models, limit)
-	for _, model := range models {
+	filledModels := d.GetWithLimit(&models, limit)
+	for _, model := range *filledModels {
 		entity := message.Message{
 			ID:           model.ID,
 			From:         model.From,

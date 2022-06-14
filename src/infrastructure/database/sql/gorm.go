@@ -33,6 +33,7 @@ func (g *GormImpl) Create(message *repositoryMessage.MessageModel) {
 	g.Db.Create(message)
 }
 
-func (g *GormImpl) GetWithLimit(message *[]repositoryMessage.MessageModel, limit int) {
+func (g *GormImpl) GetWithLimit(message *[]repositoryMessage.MessageModel, limit int) *[]repositoryMessage.MessageModel {
 	g.Db.Limit(limit).Find(&message).Order("created_at DESC")
+	return message
 }

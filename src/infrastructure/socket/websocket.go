@@ -72,12 +72,20 @@ func handleIO(currentConn *webSocketConnection, db *repositoryMessage.Database, 
 		}
 	}()
 
-	messageEntitiy := firstMessage(currentConn)
-	broadcastMessage(currentConn, messageEntitiy)
+	var firstMessage message.Message
+	if currentConn.Username == "Bot" {
+		mess := fmt.Sprintf("%s quote is %s per share\n", currentConn.BotMsg.share, currentConn.BotMsg.quote)
+		firstMessage = message.NewMessage(currentConn.Username, messageChat, mess)
+		db.Create(firstMessage)
+		broadcastMessage(currentConn, firstMessage)
+	} else {
+		messageEntitiy := message.NewMessage(currentConn.Username, messageNewUser, "")
+		broadcastMessage(currentConn, messageEntitiy)
 
-	messageStr := fmt.Sprintf("User %s: connected", currentConn.Username)
-	messageEntitiy = message.NewMessage(currentConn.Username, messageNewUser, messageStr)
-	db.Create(messageEntitiy)
+		messageStr := fmt.Sprintf("User %s: connected", currentConn.Username)
+		messageEntitiy = message.NewMessage(currentConn.Username, messageNewUser, messageStr)
+		db.Create(messageEntitiy)
+	}
 
 	for currentConn.Username != "Bot" {
 		payload := payload{}
@@ -97,28 +105,16 @@ func handleIO(currentConn *webSocketConnection, db *repositoryMessage.Database, 
 			continue
 		}
 
-		handleMsg(currentConn, db, qBroker, payload)
-		broadcastMessage(currentConn, messageEntitiy)
-	}
-}
-
-func firstMessage(currentConn *webSocketConnection) message.Message {
-	messageEntitiy := message.NewMessage(currentConn.Username, messageNewUser, "")
-	if currentConn.Username == "Bot" {
-		mensagem := fmt.Sprintf("%s quote is %s per share\n", currentConn.BotMsg.share, currentConn.BotMsg.quote)
-		messageEntitiy = message.NewMessage(currentConn.Username, messageChat, mensagem)
-	}
-	return messageEntitiy
-}
-
-func handleMsg(currentConn *webSocketConnection, db *repositoryMessage.Database, qBroker *queue.Broker, payload payload) {
-	trimStr := strings.TrimSpace(payload.Message)
-	splitStr := strings.Split(trimStr, "=")
-	if splitStr[0] == "/stock" {
-		_ = qBroker.PublishMessage("bot-send", splitStr[1])
-	} else {
-		messageEntitiy := message.NewMessage(currentConn.Username, messageChat, payload.Message)
-		db.Create(messageEntitiy)
+		trimStr := strings.TrimSpace(payload.Message)
+		splitStr := strings.Split(trimStr, "=")
+		var normalMessage message.Message
+		if splitStr[0] == "/stock" {
+			_ = qBroker.PublishMessage("bot-send", splitStr[1])
+		} else {
+			normalMessage = message.NewMessage(currentConn.Username, messageChat, payload.Message)
+			db.Create(normalMessage)
+		}
+		broadcastMessage(currentConn, normalMessage)
 	}
 }
 

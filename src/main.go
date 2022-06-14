@@ -16,7 +16,6 @@ func main() {
 	keycloak.Start(globalConfig)
 
 	gormSQL := sql.Start(globalConfig)
-
 	db := repositoryMessage.NewRepository(gormSQL)
 
 	rabbitMQ := queue.NewRabbitMQ(globalConfig)

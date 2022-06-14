@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func Auth(router *gin.Engine) {
+func auth(router *gin.Engine) {
 	router.GET("/", authController)
 	//router.GET("/auth/callback", callBack)
 }

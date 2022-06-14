@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Queue(router *gin.Engine, qBroker *queue.Broker) {
+func queueController(router *gin.Engine, qBroker *queue.Broker) {
 	//router.Static("/chat", "./public")
 	router.POST("/queue", publishMsg(qBroker))
 }

@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func WebSocket(router *gin.Engine, db *gorm.DB, qBroker *queue.Broker) {
+func websocket(router *gin.Engine, db *gorm.DB, qBroker *queue.Broker) {
 	router.GET("/socket/ws", websocketController(db, qBroker))
 }
 

@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func Message(router *gin.Engine, db *gorm.DB) {
+func message(router *gin.Engine, db *gorm.DB) {
 	//router.Static("/chat", "./public")
 	router.GET("/message", findMessage(db))
 }

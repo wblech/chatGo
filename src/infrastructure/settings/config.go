@@ -7,6 +7,7 @@ import (
 )
 
 type GlobalConfig struct {
+	MainHost             string
 	KeycloakClientID     string
 	KeycloakClientSecret string
 	DbUsername           string
@@ -24,6 +25,7 @@ func NewGlobalConfig() *GlobalConfig {
 		log.Fatalf("Error loading .env file")
 	}
 	return &GlobalConfig{
+		MainHost:             os.Getenv("MAIN.HOST"),
 		KeycloakClientID:     os.Getenv("KEYCLOAK.CLIENTID"),
 		KeycloakClientSecret: os.Getenv("KEYCLOAK.CLIENTSECRET"),
 		DbUsername:           os.Getenv("DB.USERNAME"),

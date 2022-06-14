@@ -10,8 +10,7 @@ import (
 	"os"
 )
 
-func Chat(router *gin.RouterGroup, db *gorm.DB) {
-	//router.Static("/chat", "./public")
+func chat(router *gin.RouterGroup, db *gorm.DB) {
 	router.GET("/auth/callback", chatRouter)
 }
 

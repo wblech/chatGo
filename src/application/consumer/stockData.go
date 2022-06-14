@@ -11,10 +11,9 @@ import (
 
 func GetStockData(msg string) string {
 	url := fmt.Sprintf("https://stooq.com/q/l/?s=%s&f=sd2t2ohlcv&h&e=csv", msg)
-	DownloadCSV(url, "stock.csv")
+	_ = DownloadCSV(url, "stock.csv")
 	msgToSend := ReadCSV("stock.csv")
-	os.Remove("stock.csv")
-	//return qBroker.PublishMessage("bot-receive", msgToSend)
+	_ = os.Remove("stock.csv")
 	return msgToSend
 }
 
@@ -48,7 +47,6 @@ func ReadCSV(filename string) string {
 		if i == 0 {
 			continue
 		}
-		//returnMSG = fmt.Sprintf("%s quote is %s per share\n", line[0], line[3])
 		returnMSG = fmt.Sprintf("%s %s", line[0], line[3])
 	}
 	return returnMSG

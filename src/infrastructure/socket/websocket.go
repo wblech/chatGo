@@ -72,11 +72,7 @@ func handleIO(currentConn *webSocketConnection, db repository.GormDB, qBroker *q
 		}
 	}()
 
-	messageEntitiy := message.NewMessage(currentConn.Username, messageNewUser, "")
-	if currentConn.Username == "Bot" {
-		mensagem := fmt.Sprintf("%s quote is %s per share\n", currentConn.BotMsg.share, currentConn.BotMsg.quote)
-		messageEntitiy = message.NewMessage(currentConn.Username, messageChat, mensagem)
-	}
+	messageEntitiy := firstMessage(currentConn)
 	broadcastMessage(currentConn, messageEntitiy)
 
 	messageStr := fmt.Sprintf("User %s: connected", currentConn.Username)
@@ -101,19 +97,28 @@ func handleIO(currentConn *webSocketConnection, db repository.GormDB, qBroker *q
 			continue
 		}
 
-		if currentConn.Username == "Bot" {
-			messageEntitiy := message.NewMessage("Bot", messageChat, "teste2")
-			broadcastMessage(currentConn, messageEntitiy)
-		}
-		trimStr := strings.TrimSpace(payload.Message)
-		splitStr := strings.Split(trimStr, "=")
-		if splitStr[0] == "/stock" {
-			_ = qBroker.PublishMessage("bot-send", splitStr[1])
-		} else {
-			messageEntitiy := message.NewMessage(currentConn.Username, messageChat, payload.Message)
-			db.Create(messageEntitiy)
-		}
+		handleMsg(currentConn, db, qBroker, payload)
 		broadcastMessage(currentConn, messageEntitiy)
+	}
+}
+
+func firstMessage(currentConn *webSocketConnection) message.Message {
+	messageEntitiy := message.NewMessage(currentConn.Username, messageNewUser, "")
+	if currentConn.Username == "Bot" {
+		mensagem := fmt.Sprintf("%s quote is %s per share\n", currentConn.BotMsg.share, currentConn.BotMsg.quote)
+		messageEntitiy = message.NewMessage(currentConn.Username, messageChat, mensagem)
+	}
+	return messageEntitiy
+}
+
+func handleMsg(currentConn *webSocketConnection, db repository.GormDB, qBroker *queue.Broker, payload payload) {
+	trimStr := strings.TrimSpace(payload.Message)
+	splitStr := strings.Split(trimStr, "=")
+	if splitStr[0] == "/stock" {
+		_ = qBroker.PublishMessage("bot-send", splitStr[1])
+	} else {
+		messageEntitiy := message.NewMessage(currentConn.Username, messageChat, payload.Message)
+		db.Create(messageEntitiy)
 	}
 }
 

@@ -12,6 +12,10 @@ type GlobalConfig struct {
 	DbUsername           string
 	DbPassword           string
 	DbHost               string
+	RMQUsername          string
+	RMQPassword          string
+	RMQHost              string
+	RMQPort              string
 }
 
 func NewGlobalConfig() *GlobalConfig {
@@ -25,5 +29,9 @@ func NewGlobalConfig() *GlobalConfig {
 		DbUsername:           os.Getenv("DB.USERNAME"),
 		DbPassword:           os.Getenv("DB.PASSWORD"),
 		DbHost:               os.Getenv("DB.HOST"),
+		RMQUsername:          os.Getenv("RMQ.USERNAME"),
+		RMQPassword:          os.Getenv("RMQ.PASSWORD"),
+		RMQHost:              os.Getenv("RMQ.HOST"),
+		RMQPort:              os.Getenv("RMQ.PORT"),
 	}
 }

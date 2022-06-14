@@ -3,6 +3,7 @@ package socket
 import (
 	"chatGo/src/domain/message"
 	"chatGo/src/domain/message/repository"
+	"chatGo/src/infrastructure/queue"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -30,12 +31,18 @@ type response struct {
 	Message string
 }
 
+type botMsg struct {
+	share string
+	quote string
+}
+
 type webSocketConnection struct {
 	*websocket.Conn
 	Username string
+	BotMsg   botMsg
 }
 
-func Execute(c *gin.Context, db repository.GormDB) {
+func Execute(c *gin.Context, db repository.GormDB, qBroker *queue.Broker) {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  maxMessageSize,
 		WriteBufferSize: maxMessageSize,
@@ -46,13 +53,19 @@ func Execute(c *gin.Context, db repository.GormDB) {
 		http.Error(c.Writer, "Could not open websocket connection", http.StatusBadRequest)
 	}
 	username := c.Query("username")
-	currentConn := webSocketConnection{Conn: currentGorillaConn, Username: username}
+	msg := botMsg{}
+	if username == "" {
+		username = "Bot"
+		msg.share = c.Query("share")
+		msg.quote = c.Query("quote")
+	}
+	currentConn := webSocketConnection{Conn: currentGorillaConn, Username: username, BotMsg: msg}
 	connections = append(connections, &currentConn)
 
-	go handleIO(&currentConn, db)
+	go handleIO(&currentConn, db, qBroker)
 }
 
-func handleIO(currentConn *webSocketConnection, db repository.GormDB) {
+func handleIO(currentConn *webSocketConnection, db repository.GormDB, qBroker *queue.Broker) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("ERROR", fmt.Sprintf("%v", r))
@@ -60,12 +73,17 @@ func handleIO(currentConn *webSocketConnection, db repository.GormDB) {
 	}()
 
 	messageEntitiy := message.NewMessage(currentConn.Username, messageNewUser, "")
+	if currentConn.Username == "Bot" {
+		mensagem := fmt.Sprintf("%s quote is %s per share\n", currentConn.BotMsg.share, currentConn.BotMsg.quote)
+		messageEntitiy = message.NewMessage(currentConn.Username, messageChat, mensagem)
+	}
 	broadcastMessage(currentConn, messageEntitiy)
 
 	messageStr := fmt.Sprintf("User %s: connected", currentConn.Username)
 	messageEntitiy = message.NewMessage(currentConn.Username, messageNewUser, messageStr)
 	db.Create(messageEntitiy)
-	for {
+
+	for currentConn.Username != "Bot" {
 		payload := payload{}
 		err := currentConn.ReadJSON(&payload)
 		if err != nil {
@@ -83,9 +101,19 @@ func handleIO(currentConn *webSocketConnection, db repository.GormDB) {
 			continue
 		}
 
-		messageEntitiy := message.NewMessage(currentConn.Username, messageChat, payload.Message)
+		if currentConn.Username == "Bot" {
+			messageEntitiy := message.NewMessage("Bot", messageChat, "teste2")
+			broadcastMessage(currentConn, messageEntitiy)
+		}
+		trimStr := strings.TrimSpace(payload.Message)
+		splitStr := strings.Split(trimStr, "=")
+		if splitStr[0] == "/stock" {
+			_ = qBroker.PublishMessage("bot-send", splitStr[1])
+		} else {
+			messageEntitiy := message.NewMessage(currentConn.Username, messageChat, payload.Message)
+			db.Create(messageEntitiy)
+		}
 		broadcastMessage(currentConn, messageEntitiy)
-		db.Create(messageEntitiy)
 	}
 }
 

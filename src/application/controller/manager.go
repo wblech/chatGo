@@ -2,12 +2,12 @@ package controller
 
 import (
 	"chatGo/src/application/controller/middleware"
+	"chatGo/src/domain/message/repositoryMessage"
 	"chatGo/src/infrastructure/queue"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-func RouterManager(router *gin.Engine, db *gorm.DB, qBroker *queue.Broker) {
+func RouterManager(router *gin.Engine, db *repositoryMessage.Database, qBroker *queue.Broker) {
 	routerWithToken := router.Group("/")
 	routerWithToken.Use(middleware.ValidateToken)
 	chat(routerWithToken, db)

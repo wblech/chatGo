@@ -2,7 +2,7 @@ package socket
 
 import (
 	"chatGo/src/domain/message"
-	"chatGo/src/domain/message/repository"
+	"chatGo/src/domain/message/repositoryMessage"
 	"chatGo/src/infrastructure/queue"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -42,7 +42,7 @@ type webSocketConnection struct {
 	BotMsg   botMsg
 }
 
-func Execute(c *gin.Context, db repository.GormDB, qBroker *queue.Broker) {
+func Execute(c *gin.Context, db *repositoryMessage.Database, qBroker *queue.Broker) {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  maxMessageSize,
 		WriteBufferSize: maxMessageSize,
@@ -65,7 +65,7 @@ func Execute(c *gin.Context, db repository.GormDB, qBroker *queue.Broker) {
 	go handleIO(&currentConn, db, qBroker)
 }
 
-func handleIO(currentConn *webSocketConnection, db repository.GormDB, qBroker *queue.Broker) {
+func handleIO(currentConn *webSocketConnection, db *repositoryMessage.Database, qBroker *queue.Broker) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("ERROR", fmt.Sprintf("%v", r))
@@ -111,7 +111,7 @@ func firstMessage(currentConn *webSocketConnection) message.Message {
 	return messageEntitiy
 }
 
-func handleMsg(currentConn *webSocketConnection, db repository.GormDB, qBroker *queue.Broker, payload payload) {
+func handleMsg(currentConn *webSocketConnection, db *repositoryMessage.Database, qBroker *queue.Broker, payload payload) {
 	trimStr := strings.TrimSpace(payload.Message)
 	splitStr := strings.Split(trimStr, "=")
 	if splitStr[0] == "/stock" {

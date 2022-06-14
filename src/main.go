@@ -3,6 +3,7 @@ package main
 import (
 	"chatGo/src/application/consumer"
 	"chatGo/src/application/controller"
+	"chatGo/src/domain/message/repositoryMessage"
 	"chatGo/src/infrastructure/database/sql"
 	"chatGo/src/infrastructure/keycloak"
 	"chatGo/src/infrastructure/queue"
@@ -13,7 +14,10 @@ import (
 func main() {
 	globalConfig := settings.NewGlobalConfig()
 	keycloak.Start(globalConfig)
-	db := sql.Start(globalConfig)
+
+	gormSQL := sql.Start(globalConfig)
+
+	db := repositoryMessage.NewRepository(gormSQL)
 
 	rabbitMQ := queue.NewRabbitMQ(globalConfig)
 	defer rabbitMQ.Close()
@@ -22,7 +26,7 @@ func main() {
 	consumer.RunAllConsumers(qBroker)
 
 	router := gin.Default()
-	controller.RouterManager(router, db, qBroker)
+	controller.RouterManager(router, &db, qBroker)
 
 	err := router.Run(":8081")
 	if err != nil {

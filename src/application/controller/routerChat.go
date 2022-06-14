@@ -1,16 +1,16 @@
 package controller
 
 import (
+	"chatGo/src/domain/message/repositoryMessage"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 )
 
-func chat(router *gin.RouterGroup, db *gorm.DB) {
+func chat(router *gin.RouterGroup, db *repositoryMessage.Database) {
 	router.GET("/auth/callback", chatRouter)
 }
 

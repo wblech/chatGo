@@ -1,7 +1,6 @@
 
 
 start_dev:
-#	docker network create chat-network
 	docker-compose up -d --remove-orphans
 	chmod +x ./.docker/wait-for-it.sh
 	#sh ./.docker/wait-for-it.sh --host=localhost --port=8080/auth/realms/chat/.well-known/openid-configuration --timeout=60

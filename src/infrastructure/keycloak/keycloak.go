@@ -20,13 +20,13 @@ var ConfigKeyCloak configKeycloak
 func Start(config *settings.GlobalConfig) {
 	ctx := context.Background()
 
-	providerHost := fmt.Sprintf("http://%s/auth/realms/chat", config.MainHost)
+	providerHost := fmt.Sprintf("http://%s/auth/realms/chat", config.KeycloakHost)
 	provider, err := oidc.NewProvider(ctx, providerHost)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	redirectURL := fmt.Sprintf("http://%s/auth/callback", config.KeycloakHost)
+	redirectURL := fmt.Sprintf("http://%s/auth/callback", config.MainHost)
 	oauthConfig := oauth2.Config{
 		ClientID:     config.KeycloakClientID,
 		ClientSecret: config.KeycloakClientSecret,

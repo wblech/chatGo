@@ -110,7 +110,9 @@ func handleIO(currentConn *webSocketConnection, db *repositoryMessage.Database, 
 		var normalMessage message.Message
 		if splitStr[0] == "/stock" {
 			_ = qBroker.PublishMessage("bot-send", splitStr[1])
+			normalMessage = message.NewMessage(currentConn.Username, messageChat, payload.Message)
 		} else {
+			broadcastMessage(currentConn, normalMessage)
 			normalMessage = message.NewMessage(currentConn.Username, messageChat, payload.Message)
 			db.Create(normalMessage)
 		}

@@ -112,7 +112,6 @@ func handleIO(currentConn *webSocketConnection, db *repositoryMessage.Database, 
 			_ = qBroker.PublishMessage("bot-send", splitStr[1])
 			normalMessage = message.NewMessage(currentConn.Username, messageChat, payload.Message)
 		} else {
-			broadcastMessage(currentConn, normalMessage)
 			normalMessage = message.NewMessage(currentConn.Username, messageChat, payload.Message)
 			db.Create(normalMessage)
 		}

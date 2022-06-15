@@ -33,14 +33,14 @@ func DownloadCSV(url string, filename string) error {
 func ReadCSV(filename string) string {
 	csvFile, err := os.Open(filename)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
-	fmt.Println("Successfully Opened CSV file")
+	log.Println("Successfully Opened CSV file")
 	defer csvFile.Close()
 
 	csvLines, err := csv.NewReader(csvFile).ReadAll()
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	var returnMSG string
 	for i, line := range csvLines {

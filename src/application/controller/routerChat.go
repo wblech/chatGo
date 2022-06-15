@@ -28,5 +28,5 @@ func chatRouter(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Println(path)
+	log.Println(path)
 }
